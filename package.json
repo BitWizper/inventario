@@ -4,7 +4,9 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "concurrently \"npm run dev:frontend\" \"npm run dev:backend\"",
+    "dev:frontend": "vite",
+    "dev:backend": "cd backend && node server.js",
     "build": "vite build",
     "preview": "vite preview",
     "format": "prettier --write --experimental-cli src/"
@@ -12,19 +14,15 @@
   "dependencies": {
     "@mdi/font": "^7.4.47",
     "axios": "^1.14.0",
-    "cors": "^2.8.6",
-    "express": "^5.2.1",
-    "middleware": "^1.0.0",
-    "mysql2": "^3.20.0",
-    "sass": "^1.99.0",
     "vue": "^3.5.31",
-    "vue-router": "^5.0.4",
+    "vue-router": "^4.6.4",
     "vuetify": "^3.12.5"
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^6.0.5",
+    "concurrently": "^8.2.2",
     "prettier": "3.8.1",
-    "vite": "^8.0.3",
+    "vite": "^6.0.5",
     "vite-plugin-vue-devtools": "^8.1.1"
   },
   "engines": {
