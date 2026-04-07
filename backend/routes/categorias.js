@@ -3,30 +3,45 @@ const router = express.Router()
 
 // GET todas las categorías
 router.get('/', (req, res) => {
-  const query = 'SELECT * FROM categorias ORDER BY id DESC'
-  
-  req.db.query(query, (err, results) => {
+  req.db.getConnection((err, connection) => {
     if (err) {
-      console.error('Error GET categorías:', err)
-      return res.status(500).json({ error: 'Error al obtener categorías' })
+      console.error('Error de conexión:', err)
+      return res.status(500).json({ error: 'Error de base de datos' })
     }
-    res.json(results)
+    
+    const query = 'SELECT * FROM categorias ORDER BY id DESC'
+    
+    connection.query(query, (err, results) => {
+      connection.release()
+      if (err) {
+        console.error('Error GET categorías:', err)
+        return res.status(500).json({ error: 'Error al obtener categorías' })
+      }
+      res.json(results)
+    })
   })
 })
 
 // GET categoría por ID
 router.get('/:id', (req, res) => {
-  const query = 'SELECT * FROM categorias WHERE id = ?'
-  
-  req.db.query(query, [req.params.id], (err, results) => {
+  req.db.getConnection((err, connection) => {
     if (err) {
-      console.error('Error GET categoría:', err)
-      return res.status(500).json({ error: 'Error al obtener categoría' })
+      return res.status(500).json({ error: 'Error de base de datos' })
     }
-    if (results.length === 0) {
-      return res.status(404).json({ error: 'Categoría no encontrada' })
-    }
-    res.json(results[0])
+    
+    const query = 'SELECT * FROM categorias WHERE id = ?'
+    
+    connection.query(query, [req.params.id], (err, results) => {
+      connection.release()
+      if (err) {
+        console.error('Error GET categoría:', err)
+        return res.status(500).json({ error: 'Error al obtener categoría' })
+      }
+      if (results.length === 0) {
+        return res.status(404).json({ error: 'Categoría no encontrada' })
+      }
+      res.json(results[0])
+    })
   })
 })
 
@@ -38,16 +53,23 @@ router.post('/', (req, res) => {
     return res.status(400).json({ error: 'El nombre es requerido' })
   }
   
-  const query = 'INSERT INTO categorias (nombre, descripcion) VALUES (?, ?)'
-  
-  req.db.query(query, [nombre, descripcion || null], (err, result) => {
+  req.db.getConnection((err, connection) => {
     if (err) {
-      console.error('Error POST categoría:', err)
-      return res.status(500).json({ error: 'Error al crear categoría' })
+      return res.status(500).json({ error: 'Error de base de datos' })
     }
-    res.json({ 
-      id: result.insertId, 
-      message: 'Categoría creada exitosamente' 
+    
+    const query = 'INSERT INTO categorias (nombre, descripcion) VALUES (?, ?)'
+    
+    connection.query(query, [nombre, descripcion || null], (err, result) => {
+      connection.release()
+      if (err) {
+        console.error('Error POST categoría:', err)
+        return res.status(500).json({ error: 'Error al crear categoría' })
+      }
+      res.json({ 
+        id: result.insertId, 
+        message: 'Categoría creada exitosamente' 
+      })
     })
   })
 })
@@ -56,33 +78,47 @@ router.post('/', (req, res) => {
 router.put('/:id', (req, res) => {
   const { nombre, descripcion } = req.body
   
-  const query = 'UPDATE categorias SET nombre=?, descripcion=? WHERE id=?'
-  
-  req.db.query(query, [nombre, descripcion, req.params.id], (err, result) => {
+  req.db.getConnection((err, connection) => {
     if (err) {
-      console.error('Error PUT categoría:', err)
-      return res.status(500).json({ error: 'Error al actualizar categoría' })
+      return res.status(500).json({ error: 'Error de base de datos' })
     }
-    if (result.affectedRows === 0) {
-      return res.status(404).json({ error: 'Categoría no encontrada' })
-    }
-    res.json({ message: 'Categoría actualizada exitosamente' })
+    
+    const query = 'UPDATE categorias SET nombre=?, descripcion=? WHERE id=?'
+    
+    connection.query(query, [nombre, descripcion, req.params.id], (err, result) => {
+      connection.release()
+      if (err) {
+        console.error('Error PUT categoría:', err)
+        return res.status(500).json({ error: 'Error al actualizar categoría' })
+      }
+      if (result.affectedRows === 0) {
+        return res.status(404).json({ error: 'Categoría no encontrada' })
+      }
+      res.json({ message: 'Categoría actualizada exitosamente' })
+    })
   })
 })
 
 // DELETE eliminar categoría
 router.delete('/:id', (req, res) => {
-  const query = 'DELETE FROM categorias WHERE id=?'
-  
-  req.db.query(query, [req.params.id], (err, result) => {
+  req.db.getConnection((err, connection) => {
     if (err) {
-      console.error('Error DELETE categoría:', err)
-      return res.status(500).json({ error: 'Error al eliminar categoría' })
+      return res.status(500).json({ error: 'Error de base de datos' })
     }
-    if (result.affectedRows === 0) {
-      return res.status(404).json({ error: 'Categoría no encontrada' })
-    }
-    res.json({ message: 'Categoría eliminada exitosamente' })
+    
+    const query = 'DELETE FROM categorias WHERE id=?'
+    
+    connection.query(query, [req.params.id], (err, result) => {
+      connection.release()
+      if (err) {
+        console.error('Error DELETE categoría:', err)
+        return res.status(500).json({ error: 'Error al eliminar categoría' })
+      }
+      if (result.affectedRows === 0) {
+        return res.status(404).json({ error: 'Categoría no encontrada' })
+      }
+      res.json({ message: 'Categoría eliminada exitosamente' })
+    })
   })
 })
 

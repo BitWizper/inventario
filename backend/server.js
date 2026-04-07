@@ -20,7 +20,7 @@ if (missingEnvVars.length > 0) {
   console.log('✅ Variables de entorno cargadas correctamente')
 }
 
-// Configuración de Clever Cloud - SIN FALLBACKS
+// Configuración de Clever Cloud - CON LÍMITE BAJO DE CONEXIONES
 const dbConfig = {
   host: process.env.DB_HOST,
   user: process.env.DB_USER,
@@ -28,14 +28,21 @@ const dbConfig = {
   database: process.env.DB_NAME,
   port: process.env.DB_PORT || 3306,
   waitForConnections: true,
-  connectionLimit: 10,
-  queueLimit: 0
+  connectionLimit: 2,        // Límite de 2 conexiones simultáneas
+  queueLimit: 0,
+  enableKeepAlive: true,
+  keepAliveInitialDelay: 0
 }
 
 // Crear pool de conexiones
 const pool = mysql.createPool(dbConfig)
 
-// Verificar conexión
+// Manejar errores del pool
+pool.on('error', (err) => {
+  console.error('❌ Error en el pool de conexiones:', err.message)
+})
+
+// Verificar conexión inicial
 pool.getConnection((err, connection) => {
   if (err) {
     console.error('❌ Error conectando a Clever Cloud:', err.message)
@@ -65,9 +72,8 @@ const categoriesRoutes = require('./routes/categorias')
 app.use('/api/productos', productsRoutes)
 app.use('/api/categorias', categoriesRoutes)
 
-// Ruta de prueba MEJORADA
+// Ruta de prueba
 app.get('/api/health', (req, res) => {
-  // Verificar conexión a DB
   req.db.getConnection((err, connection) => {
     if (err) {
       return res.status(500).json({ 
