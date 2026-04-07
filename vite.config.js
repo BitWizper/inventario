@@ -1,17 +1,31 @@
+import { fileURLToPath, URL } from 'node:url'
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
-import path from 'path'
+import vueDevTools from 'vite-plugin-vue-devtools'
 
+// https://vite.dev/config/
 export default defineConfig({
-  plugins: [vue()],
+  plugins: [
+    vue(),
+    vueDevTools(),
+  ],
   resolve: {
     alias: {
-      '@': path.resolve(__dirname, './src'),
-      // ✅ Forzar alias para components
-      '@components': path.resolve(__dirname, './src/components')
-    }
+      '@': fileURLToPath(new URL('./src', import.meta.url))
+    },
+  },
+  // ===== AGREGAR ESTO PARA PRODUCCIÓN =====
+  build: {
+    outDir: 'dist',        // Carpeta de salida para Vercel
+    emptyOutDir: true,     // Limpiar antes de construir
   },
   server: {
-    port: 5173
+    port: 5173,
+    proxy: {
+      '/api': {
+        target: 'http://localhost:3000',
+        changeOrigin: true
+      }
+    }
   }
 })
