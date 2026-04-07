@@ -10,12 +10,22 @@ app.use(cors())
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
 
-// Configuración de Clever Cloud
+// ✅ VERIFICAR que las variables de entorno existen
+const requiredEnvVars = ['DB_HOST', 'DB_USER', 'DB_PASSWORD', 'DB_NAME']
+const missingEnvVars = requiredEnvVars.filter(envVar => !process.env[envVar])
+
+if (missingEnvVars.length > 0) {
+  console.error('❌ Faltan variables de entorno:', missingEnvVars.join(', '))
+} else {
+  console.log('✅ Variables de entorno cargadas correctamente')
+}
+
+// Configuración de Clever Cloud - SIN FALLBACKS
 const dbConfig = {
-  host: process.env.DB_HOST || 'bz1k2riqdiarqfaa6de9-mysql.services.clever-cloud.com',
-  user: process.env.DB_USER || 'u7mhnlkxtge3ehkz',
-  password: process.env.DB_PASSWORD || 'YmhHFtkNAw1IlkZNUAd0',
-  database: process.env.DB_NAME || 'bz1k2riqdiarqfaa6de9',
+  host: process.env.DB_HOST,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  database: process.env.DB_NAME,
   port: process.env.DB_PORT || 3306,
   waitForConnections: true,
   connectionLimit: 10,
@@ -29,6 +39,12 @@ const pool = mysql.createPool(dbConfig)
 pool.getConnection((err, connection) => {
   if (err) {
     console.error('❌ Error conectando a Clever Cloud:', err.message)
+    console.error('Configuración usada:', {
+      host: dbConfig.host,
+      user: dbConfig.user,
+      database: dbConfig.database,
+      port: dbConfig.port
+    })
     return
   }
   console.log('✅ Conectado a Clever Cloud MySQL')
@@ -49,12 +65,30 @@ const categoriesRoutes = require('./routes/categorias')
 app.use('/api/productos', productsRoutes)
 app.use('/api/categorias', categoriesRoutes)
 
-// Ruta de prueba
+// Ruta de prueba MEJORADA
 app.get('/api/health', (req, res) => {
-  res.json({ 
-    status: 'OK', 
-    message: 'Servidor funcionando',
-    timestamp: new Date().toISOString()
+  // Verificar conexión a DB
+  req.db.getConnection((err, connection) => {
+    if (err) {
+      return res.status(500).json({ 
+        status: 'ERROR', 
+        message: 'Error de conexión a base de datos',
+        error: err.message,
+        envVars: {
+          DB_HOST: process.env.DB_HOST ? '✅' : '❌',
+          DB_USER: process.env.DB_USER ? '✅' : '❌',
+          DB_PASSWORD: process.env.DB_PASSWORD ? '✅' : '❌',
+          DB_NAME: process.env.DB_NAME ? '✅' : '❌'
+        }
+      })
+    }
+    connection.release()
+    res.json({ 
+      status: 'OK', 
+      message: 'Servidor funcionando',
+      db: 'Conectado',
+      timestamp: new Date().toISOString()
+    })
   })
 })
 
