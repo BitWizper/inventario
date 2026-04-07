@@ -63,23 +63,13 @@ app.use((req, res) => {
   res.status(404).json({ error: 'Ruta no encontrada' })
 })
 
-// ===== IMPORTANTE: Solo para desarrollo local =====
+// Solo para desarrollo local
 if (process.env.NODE_ENV !== 'production') {
   const PORT = process.env.PORT || 3000
   app.listen(PORT, () => {
     console.log(`🚀 Servidor backend corriendo en http://localhost:${PORT}`)
-    console.log(`📦 Endpoints disponibles:`)
-    console.log(`   GET    http://localhost:${PORT}/api/productos`)
-    console.log(`   POST   http://localhost:${PORT}/api/productos`)
-    console.log(`   PUT    http://localhost:${PORT}/api/productos/:id`)
-    console.log(`   DELETE http://localhost:${PORT}/api/productos/:id`)
-    console.log(`   GET    http://localhost:${PORT}/api/categorias`)
-    console.log(`   POST   http://localhost:${PORT}/api/categorias`)
-    console.log(`   PUT    http://localhost:${PORT}/api/categorias/:id`)
-    console.log(`   DELETE http://localhost:${PORT}/api/categorias/:id`)
-    console.log(`   GET    http://localhost:${PORT}/api/health`)
   })
 }
 
-// ===== EXPORTAR para Vercel (AGREGA ESTO) =====
+// Exportar para Vercel
 module.exports = app
