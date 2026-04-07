@@ -1,14 +1,30 @@
 import axios from 'axios'
 
-// Conexión al backend (debe estar corriendo en el puerto 3000)
-const API_BASE_URL = 'http://localhost:3000/api'
+// ✅ Usa ruta relativa - funciona local y producción
+// En desarrollo: Vite redirige /api a http://localhost:3000/api
+// En producción: Vercel redirige /api a la serverless function
+const API_BASE_URL = '/api'
 
 const api = axios.create({
   baseURL: API_BASE_URL,
   headers: {
     'Content-Type': 'application/json'
-  }
+  },
+  timeout: 30000 // 30 segundos de timeout
 })
+
+// Interceptor para manejar errores de red
+api.interceptors.response.use(
+  response => response,
+  error => {
+    if (error.code === 'ERR_NETWORK') {
+      console.error('Error de red: No se puede conectar al servidor')
+    } else if (error.response) {
+      console.error(`Error ${error.response.status}:`, error.response.data)
+    }
+    return Promise.reject(error)
+  }
+)
 
 // Servicios para Productos
 export const productosService = {
