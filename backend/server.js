@@ -28,7 +28,7 @@ const dbConfig = {
   database: process.env.DB_NAME,
   port: process.env.DB_PORT || 3306,
   waitForConnections: true,
-  connectionLimit: 2,        // Límite de 2 conexiones simultáneas
+  connectionLimit: 1,        // Límite de 2 conexiones simultáneas
   queueLimit: 0,
   enableKeepAlive: true,
   keepAliveInitialDelay: 0
